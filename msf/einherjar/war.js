@@ -82,7 +82,7 @@ function addData() {
   updateNamedRange(["mainDB", "Database"])
 
   // sort database
-  ss.getRangeByName("mainDB").sort([{column: 3, ascending: false}, {column: 1}, {column: 2}])
+  ss.getRangeByName("mainDB").sort([{column: 3, ascending: false}, {column: 1}])
 
   // find new last row and apply formula to generate primary key for lookup
   var newLastRow = ss.getRangeByName("mainDB").getLastRow()
@@ -121,7 +121,7 @@ function updateEfficiency() {
   updateNamedRange(["mainDB", "Database"])
 
   // sort database
-  ss.getRangeByName("mainDB").sort([{column: 3, ascending: false}, {column: 1}, {column: 2}])
+  ss.getRangeByName("mainDB").sort([{column: 3, ascending: false}, {column: 1}])
 
   // find new last row and apply formula to generate primary key for lookup
   var newLastRow = ss.getRangeByName("mainDB").getLastRow()
