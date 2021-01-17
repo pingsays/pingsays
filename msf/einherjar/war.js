@@ -3,18 +3,14 @@
 function onEdit() {
   ss = SpreadsheetApp.getActiveSpreadsheet()
   r = ss.getActiveRange()
-  openEndedNamedRange = [["mainDB", "Database"], ["metrics", "Metrics"]]
+  openEndedNamedRange = [["mainDB", "Database"], ["metrics", "Metrics"], ["failedAttacksDB", "Failed-Attacks"]]
   ssDatabase = ss.getSheetByName("Database")
   ssEfficiency = ss.getSheetByName("Efficiency-Calculator")
+  ssFailedAttacks = ss.getSheetByName("Failed-Attacks")
   dbLock = ssDatabase.getRange("H5")
   dbAddButton = ssDatabase.getRange("H2")
   dbUpdEffButton = ssDatabase.getRange("I2")
-
-  //*******************//
-  // Fixed Named Range //
-  //*******************//
-  efficiencyTable = ss.getRangeByName("efficiencyTable").getValues()
-  members = ss.getRangeByName("members").getValues()
+  dateToday = Utilities.formatDate(new Date(), "GMT", "dd/MM/yyyy")
 
   //**********//
   //   main   //
@@ -31,7 +27,8 @@ function onEdit() {
   }
 }
 
-function updOpenEndedNamedRange(arrayRangeNameAndSheet) {
+
+function updateNamedRange(arrayRangeNameAndSheet) {
   Logger.log(arrayRangeNameAndSheet)
   var rangeName = arrayRangeNameAndSheet[0]
   Logger.log(rangeName)
@@ -57,10 +54,11 @@ function updOpenEndedNamedRange(arrayRangeNameAndSheet) {
   }
 }
 
+
 function addData() {
   // refresh named range in case there are any updates
-  updOpenEndedNamedRange(["metrics", "Metrics"])
-  updOpenEndedNamedRange(["mainDB", "Database"])
+  updateNamedRange(["metrics", "Metrics"])
+  updateNamedRange(["mainDB", "Database"])
 
   var members = ss.getRangeByName("members").getValues()
   var metrics = ss.getRangeByName("metrics").getValues()
@@ -84,7 +82,7 @@ function addData() {
   outputRange.setValues(output)
 
   // update named range
-  updOpenEndedNamedRange(["mainDB", "Database"])
+  updateNamedRange(["mainDB", "Database"])
 
   // sort database
   ss.getRangeByName("mainDB").sort([{column: 3, ascending: false}, {column: 1}, {column: 2}])
@@ -99,13 +97,15 @@ function addData() {
   dbLock.setValue("true")
 }
 
+
 function updateEfficiency() {
-  updOpenEndedNamedRange(["mainDB", "Database"])
+  updateNamedRange(["mainDB", "Database"])
   var dataDate = ss.getRangeByName("efficiencyTableDate").getValue()
+  var efficiencyTable = ss.getRangeByName("efficiencyTable").getValues()
   Logger.log(efficiencyTable)
   Logger.log(dataDate)
 
-  output = []
+  var output = []
   efficiencyTable.forEach(
     function(row) {
       output.push([row[0], "Failed Attacks", dataDate, row[2]])
@@ -122,7 +122,7 @@ function updateEfficiency() {
   outputRange.setValues(output)
 
   // update named range
-  updOpenEndedNamedRange(["mainDB", "Database"])
+  updateNamedRange(["mainDB", "Database"])
 
   // re-calculate last row
   var newLastRow = ss.getRangeByName("mainDB").getLastRow()
@@ -137,4 +137,53 @@ function updateEfficiency() {
   // reset checkbox to false
   dbUpdEffButton.setValue("false")
   dbLock.setValue("true")
+
+  // export data to failed attacks database
+  updateFailedAttacks()
+}
+
+
+// https://yagisanatode.com/2019/05/11/google-apps-script-get-the-last-row-of-a-data-range-when-other-columns-have-content-like-hidden-formulas-and-check-boxes/
+function getLastRowSpecial(range){
+  var rowNum = 0
+  var blank = false
+  for (var row = 0; row < range.length; row++) {
+    if (range[row][0] === "" && !blank) {
+      rowNum = row
+      blank = true
+    } else if (range[row][0] !== "") {
+      blank = false
+    }
+  }
+  return rowNum
+}
+
+
+function updateFailedAttacks() {
+  updateNamedRange(["failedAttacksDB", "Failed-Attacks"])
+  var columnToCheck = ssEfficiency.getRange("A:A").getValues()
+  var currentFailedAttacksLastRow = getLastRowSpecial(columnToCheck)
+  var currentFailedAttacks = ssEfficiency.getRange(2, 1, currentFailedAttacksLastRow -1, 3).getValues()  // -1 to exclude column header
+  Logger.log(currentFailedAttacks)
+
+  var output = []
+  currentFailedAttacks.forEach(
+    function(row) {
+      output.push([row[0], row[1], row[2], dateToday])
+    }
+  )
+  Logger.log(output)
+
+  var dbLastRow = ssFailedAttacks.getLastRow()
+  var outputRange = ssFailedAttacks.getRange("R"+(dbLastRow+1)+"C1:R"+(dbLastRow+output.length)+"C4")
+  outputRange.setValues(output)
+
+  // update named range
+  updateNamedRange(["failedAttacksDB", "Failed-Attacks"])
+
+  // re-calculate last row
+  var newLastRow = ss.getRangeByName("failedAttacksDB").getLastRow()
+
+  // sort database
+  ss.getRangeByName("failedAttacksDB").sort([{column: 4, ascending: false}, {column: 1}, {column: 3}])
 }
