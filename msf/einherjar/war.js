@@ -6,8 +6,6 @@ function onEdit() {
   openEndedNamedRange = [["mainDB", "Database"], ["metrics", "Metrics"]]
   ssDatabase = ss.getSheetByName("Database")
   ssEfficiency = ss.getSheetByName("Efficiency-Calculator")
-  ssMembers = ss.getSheetByName("Members")
-  ssMetrics = ss.getSheetByName("Metrics")
   dbLock = ssDatabase.getRange("H5")
   dbAddButton = ssDatabase.getRange("H2")
   dbUpdEffButton = ssDatabase.getRange("I2")
@@ -18,12 +16,9 @@ function onEdit() {
   efficiencyTable = ss.getRangeByName("efficiencyTable").getValues()
   members = ss.getRangeByName("members").getValues()
 
-  //************************//
-  // Open Ended Named Range //
-  //************************//
-  mainDB = ss.getRangeByName("mainDB").getValues()
-  metrics = ss.getRangeByName("metrics").getValues()
-
+  //**********//
+  //   main   //
+  //**********//
   if (dbLock.getValue() == true) {
     Logger.log("sheet is locked")
     return 0
@@ -37,29 +32,39 @@ function onEdit() {
 }
 
 function updOpenEndedNamedRange(arrayRangeNameAndSheet) {
-  for (i in arrayRangeNameAndSheet) {
-    var rangeName = arrayRangeNameAndSheet[i][0]
-    var sheetName = arrayRangeNameAndSheet[i][1]
-    var _range = ss.getRangeByName(rangeName)
-    var _sheet = ss.getSheetByName(sheetName)
-    var rangeA1Notation = _range.getA1Notation()
-    var rangeAddress = rangeA1Notation.split(":")
-    var rangeStart = rangeAddress[0]
-    var rangeEnd = rangeAddress[1]
-    var rangeLastCol = rangeEnd.substring(0,1)
-    var sheetLastRow = _sheet.getLastRow()
-    var newRangeA1Notation = rangeStart+":"+rangeLastCol+sheetLastRow
-    var newRange = _sheet.getRange(newRangeA1Notation)
+  Logger.log(arrayRangeNameAndSheet)
+  var rangeName = arrayRangeNameAndSheet[0]
+  Logger.log(rangeName)
+  var sheetName = arrayRangeNameAndSheet[1]
+  var _range = ss.getRangeByName(rangeName)
+  var _sheet = ss.getSheetByName(sheetName)
+  var rangeA1Notation = _range.getA1Notation()
+  Logger.log(rangeA1Notation)
+  var rangeAddress = rangeA1Notation.split(":")
+  var rangeStart = rangeAddress[0]
+  var rangeEnd = rangeAddress[1]
+  var rangeLastCol = rangeEnd.substring(0,1)
+  var sheetLastRow = _sheet.getLastRow()
+  var newRangeA1Notation = rangeStart+":"+rangeLastCol+sheetLastRow
+  Logger.log(newRangeA1Notation)
+  var newRange = _sheet.getRange(newRangeA1Notation)
+
+  if (rangeA1Notation == newRangeA1Notation) {
+    return 0
+  } else {
     ss.removeNamedRange(rangeName)
     ss.setNamedRange(rangeName, newRange)
   }
 }
 
 function addData() {
-  var dbLastRow = ssDatabase.getLastRow()
-  var members = getMembers()
-  var metrics = getMetrics()
-  var date = ssDatabase.getRange("G2").getValue()
+  // refresh named range in case there are any updates
+  updOpenEndedNamedRange(["metrics", "Metrics"])
+  updOpenEndedNamedRange(["mainDB", "Database"])
+
+  var members = ss.getRangeByName("members").getValues()
+  var metrics = ss.getRangeByName("metrics").getValues()
+  var date = ss.getRangeByName("mainDBDate").getValue()
   // var date = Utilities.formatDate(new Date(), "GMT", "dd/MM/yyyy")
 
   var output = []
@@ -68,15 +73,24 @@ function addData() {
       output.push([members[x], metrics[y], date, null])
     }
   }
+
+  // define the range where the output should be written to
+  var dbLastRow = ssDatabase.getLastRow()
   var outputRowCount = members.length * metrics.length
   var outputRange = ssDatabase.getRange("R"+(dbLastRow+1)+"C1:R"+(dbLastRow+outputRowCount)+"C4")
+
+  // write data to database
   Logger.log(output)
   outputRange.setValues(output)
 
-  var newLastRow = ssDatabase.getLastRow()
-  var dataRange = ssDatabase.getRange("R2C1:R"+newLastRow+"C4")
-  dataRange.sort([{column: 3, ascending: false}, {column: 1}, {column: 2}])
+  // update named range
+  updOpenEndedNamedRange(["mainDB", "Database"])
 
+  // sort database
+  ss.getRangeByName("mainDB").sort([{column: 3, ascending: false}, {column: 1}, {column: 2}])
+
+  // find new last row and apply concatenate formula
+  var newLastRow = ss.getRangeByName("mainDB").getLastRow()
   var formulaRange = ssDatabase.getRange("R2C5:R"+newLastRow+"C5")
   formulaRange.setFormula("=CONCATENATE(A2,B2,C2)")
 
@@ -85,28 +99,8 @@ function addData() {
   dbLock.setValue("true")
 }
 
-// function getMembers() {
-//   var membersLastRow = ssMembers.getLastRow()
-//   Logger.log("last row: "+membersLastRow)
-//   var members = ssMembers.getRange("A1:A"+membersLastRow)
-//   // Logger.log(members.getValues())
-//   return members.getValues()
-// }
-
-// function getMetrics() {
-//   var metricsLastRow = ssMetrics.getLastRow()
-//   Logger.log("last row: "+metricsLastRow)
-//   var metrics = ssMetrics.getRange("A1:A"+metricsLastRow)
-//   // Logger.log(metrics.getValues())
-//   return metrics.getValues()
-// }
-
 function updateEfficiency() {
-  // var effDataSet = ssEfficiency.getRange("E3:I26").getValues()
-  // var effDataSet = ssEfficiency.getRangeByName("EfficiencyTable").getValues()
-  // var dataDate = ssEfficiency.getRange("E2").getValue()
-  // var lastRow = ssDatabase.getLastRow()
-  // var dbDataSet = ssDatabase.getRange("R2C1:R"+lastRow+"C5").getValues()
+  updOpenEndedNamedRange(["mainDB", "Database"])
   var dataDate = ss.getRangeByName("efficiencyTableDate").getValue()
   Logger.log(efficiencyTable)
   Logger.log(dataDate)
@@ -121,8 +115,9 @@ function updateEfficiency() {
   Logger.log(output)
   Logger.log(output.length)
 
-  Logger.log(lastRow)
-  var outputRange = ssDatabase.getRange("R"+(lastRow+1)+"C1:R"+(lastRow+output.length)+"C4")
+  var dbLastRow = ssDatabase.getLastRow()
+  Logger.log(dbLastRow)
+  var outputRange = ssDatabase.getRange("R"+(dbLastRow+1)+"C1:R"+(dbLastRow+output.length)+"C4")
   Logger.log(outputRange.getA1Notation())
   outputRange.setValues(output)
 
@@ -130,11 +125,9 @@ function updateEfficiency() {
   updOpenEndedNamedRange(["mainDB", "Database"])
 
   // re-calculate last row
-  var newLastRow = ssDatabase.getLastRow()
+  var newLastRow = ss.getRangeByName("mainDB").getLastRow()
 
   // sort database
-  // var dataRange = ssDatabase.getRange("R2C1:R"+newLastRow+"C4")
-  // dataRange.sort([{column: 3, ascending: false}, {column: 1}, {column: 2}])
   ss.getRangeByName("mainDB").sort([{column: 3, ascending: false}, {column: 1}, {column: 2}])
 
   // add formula to generate primary key for lookup
