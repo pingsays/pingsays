@@ -84,7 +84,7 @@ function addData() {
   // sort database
   ss.getRangeByName("mainDB").sort([{column: 3, ascending: false}, {column: 1}, {column: 2}])
 
-  // find new last row and apply concatenate formula
+  // find new last row and apply formula to generate primary key for lookup
   var newLastRow = ss.getRangeByName("mainDB").getLastRow()
   var formulaRange = ssDatabase.getRange("R2C5:R"+newLastRow+"C5")
   formulaRange.setFormula("=CONCATENATE(A2,B2,C2)")
@@ -120,13 +120,11 @@ function updateEfficiency() {
   // update named range
   updateNamedRange(["mainDB", "Database"])
 
-  // re-calculate last row
-  var newLastRow = ss.getRangeByName("mainDB").getLastRow()
-
   // sort database
   ss.getRangeByName("mainDB").sort([{column: 3, ascending: false}, {column: 1}, {column: 2}])
 
-  // add formula to generate primary key for lookup
+  // find new last row and apply formula to generate primary key for lookup
+  var newLastRow = ss.getRangeByName("mainDB").getLastRow()
   var formulaRange = ssDatabase.getRange("R2C5:R"+newLastRow+"C5")
   formulaRange.setFormula("=CONCATENATE(A2,B2,C2)")
 
@@ -174,9 +172,6 @@ function updateFailedAttacks() {
 
   // update named range
   updateNamedRange(["failedAttacksDB", "Failed-Attacks"])
-
-  // re-calculate last row
-  var newLastRow = ss.getRangeByName("failedAttacksDB").getLastRow()
 
   // sort database
   ss.getRangeByName("failedAttacksDB").sort([{column: 4, ascending: false}, {column: 1}, {column: 3}])
