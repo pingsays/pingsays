@@ -7,26 +7,25 @@ function onEdit() {
   ssDatabase = ss.getSheetByName("Database")
   ssEfficiency = ss.getSheetByName("Efficiency-Calculator")
   ssFailedAttacks = ss.getSheetByName("Failed-Attacks")
-  dbLock = ssDatabase.getRange("H5")
-  dbAddButton = ssDatabase.getRange("H2")
-  dbUpdEffButton = ssDatabase.getRange("I2")
+  buttonLockMainDB = ss.getRangeByName("buttonLockMainDB")
+  buttonAddRows = ss.getRangeByName("buttonAddRows")
+  buttonExportEfficiency = ss.getRangeByName("buttonExportEfficiency")
   dateToday = Utilities.formatDate(new Date(), "GMT", "dd/MM/yyyy")
 
   //**********//
   //   main   //
   //**********//
-  if (dbLock.getValue() == true) {
+  if (buttonLockMainDB.getValue() == true) {
     Logger.log("sheet is locked")
     return 0
-  } else if (r.getRow() == dbAddButton.getRow() && r.getColumn() == dbAddButton.getColumn() && dbAddButton.getValue() == true) {
+  } else if (r.getRow() == buttonAddRows.getRow() && r.getColumn() == buttonAddRows.getColumn() && buttonAddRows.getValue() == true) {
     Logger.log("executing addData()")
     addData()
-  } else if (r.getRow() == dbUpdEffButton.getRow() && r.getColumn() == dbUpdEffButton.getColumn() && dbUpdEffButton.getValue() == true) {
+  } else if (r.getRow() == buttonExportEfficiency.getRow() && r.getColumn() == buttonExportEfficiency.getColumn() && buttonExportEfficiency.getValue() == true) {
     Logger.log("executing updateEfficiency()")
     updateEfficiency()
   }
 }
-
 
 function updateNamedRange(arrayRangeNameAndSheet) {
   Logger.log(arrayRangeNameAndSheet)
@@ -54,7 +53,6 @@ function updateNamedRange(arrayRangeNameAndSheet) {
   }
 }
 
-
 function addData() {
   // refresh named range in case there are any updates
   updateNamedRange(["metrics", "Metrics"])
@@ -63,7 +61,6 @@ function addData() {
   var members = ss.getRangeByName("members").getValues()
   var metrics = ss.getRangeByName("metrics").getValues()
   var date = ss.getRangeByName("mainDBDate").getValue()
-  // var date = Utilities.formatDate(new Date(), "GMT", "dd/MM/yyyy")
 
   var output = []
   for (var x=0; x<members.length; x++) {
@@ -93,10 +90,9 @@ function addData() {
   formulaRange.setFormula("=CONCATENATE(A2,B2,C2)")
 
   // reset checkbox to false
-  dbAddButton.setValue("false")
-  dbLock.setValue("true")
+  buttonAddRows.setValue("false")
+  buttonLockMainDB.setValue("true")
 }
-
 
 function updateEfficiency() {
   updateNamedRange(["mainDB", "Database"])
@@ -135,13 +131,12 @@ function updateEfficiency() {
   formulaRange.setFormula("=CONCATENATE(A2,B2,C2)")
 
   // reset checkbox to false
-  dbUpdEffButton.setValue("false")
-  dbLock.setValue("true")
+  buttonExportEfficiency.setValue("false")
+  buttonLockMainDB.setValue("true")
 
   // export data to failed attacks database
   updateFailedAttacks()
 }
-
 
 // https://yagisanatode.com/2019/05/11/google-apps-script-get-the-last-row-of-a-data-range-when-other-columns-have-content-like-hidden-formulas-and-check-boxes/
 function getLastRowSpecial(range){
@@ -157,7 +152,6 @@ function getLastRowSpecial(range){
   }
   return rowNum
 }
-
 
 function updateFailedAttacks() {
   updateNamedRange(["failedAttacksDB", "Failed-Attacks"])
