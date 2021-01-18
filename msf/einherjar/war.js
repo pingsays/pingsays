@@ -11,6 +11,7 @@ function onEdit() {
   buttonAddRows = ss.getRangeByName("buttonAddRows")
   buttonExportEfficiency = ss.getRangeByName("buttonExportEfficiency")
   dateToday = Utilities.formatDate(new Date(), "GMT", "dd/MM/yyyy")
+  dateParam = ss.getRangeByName("mainDBDate").getValue()
 
   //**********//
   //   main   //
@@ -60,12 +61,11 @@ function addData() {
 
   var members = ss.getRangeByName("members").getValues()
   var metrics = ss.getRangeByName("metrics").getValues()
-  var date = ss.getRangeByName("mainDBDate").getValue()
 
   var output = []
   for (var x=0; x<members.length; x++) {
     for (var y=0; y<metrics.length; y++) {
-      output.push([members[x], metrics[y], date, null])
+      output.push([members[x], metrics[y], dateParam, null])
     }
   }
 
@@ -96,16 +96,15 @@ function addData() {
 
 function updateEfficiency() {
   updateNamedRange(["mainDB", "Database"])
-  var dataDate = ss.getRangeByName("efficiencyTableDate").getValue()
+
   var efficiencyTable = ss.getRangeByName("efficiencyTable").getValues()
   Logger.log(efficiencyTable)
-  Logger.log(dataDate)
 
   var output = []
   efficiencyTable.forEach(
     function(row) {
-      output.push([row[0], "Failed Attacks", dataDate, row[2]])
-      output.push([row[0], "Efficiency", dataDate, row[4]])
+      output.push([row[0], "Failed Attacks", dateParam, row[2]])
+      output.push([row[0], "Efficiency", dateParam, row[4]])
     }
   )
   Logger.log(output)
@@ -161,7 +160,7 @@ function updateFailedAttacks() {
   var output = []
   currentFailedAttacks.forEach(
     function(row) {
-      output.push([row[0], row[1], row[2], dateToday])
+      output.push([row[0], row[1], row[2], dateParam])
     }
   )
   Logger.log(output)
