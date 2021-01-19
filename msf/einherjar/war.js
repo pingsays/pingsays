@@ -154,19 +154,19 @@ function updateFailedAttacks() {
   updateNamedRange(["failedAttacksDB", "Failed-Attacks"])
   var columnToCheck = ssEfficiency.getRange("A:A").getValues()
   var currentFailedAttacksLastRow = getLastRowSpecial(columnToCheck)
-  var currentFailedAttacks = ssEfficiency.getRange(2, 1, currentFailedAttacksLastRow -1, 3).getValues()  // -1 to exclude column header
+  var currentFailedAttacks = ssEfficiency.getRange(2, 1, currentFailedAttacksLastRow -1, 4).getValues()  // -1 to exclude column header
   Logger.log(currentFailedAttacks)
 
   var output = []
   currentFailedAttacks.forEach(
     function(row) {
-      output.push([row[0], row[1], row[2], dateParam])
+      output.push([row[0], row[1], row[2], row[3], dateParam])
     }
   )
   Logger.log(output)
 
   var dbLastRow = ssFailedAttacks.getLastRow()
-  var outputRange = ssFailedAttacks.getRange("R"+(dbLastRow+1)+"C1:R"+(dbLastRow+output.length)+"C4")
+  var outputRange = ssFailedAttacks.getRange("R"+(dbLastRow+1)+"C1:R"+(dbLastRow+output.length)+"C5")
   outputRange.setValues(output)
 
   // update named range
