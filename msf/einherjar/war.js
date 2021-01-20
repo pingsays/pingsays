@@ -10,6 +10,7 @@ function onEdit() {
   buttonLockMainDB = ss.getRangeByName("buttonLockMainDB")
   buttonAddRows = ss.getRangeByName("buttonAddRows")
   buttonExportEfficiency = ss.getRangeByName("buttonExportEfficiency")
+  buttonFailedAttacks = ss.getRangeByName("buttonFailedAttacks")
   dateToday = Utilities.formatDate(new Date(), "GMT", "dd/MM/yyyy")
   dateParam = ss.getRangeByName("mainDBDate").getValue()
 
@@ -23,8 +24,13 @@ function onEdit() {
     Logger.log("executing addData()")
     addData()
   } else if (r.getRow() == buttonExportEfficiency.getRow() && r.getColumn() == buttonExportEfficiency.getColumn() && buttonExportEfficiency.getValue() == true) {
+    // export efficiency data to main database
     Logger.log("executing updateEfficiency()")
     updateEfficiency()
+  } else if (r.getRow() == buttonFailedAttacks.getRow() && r.getColumn() == buttonFailedAttacks.getColumn() && buttonFailedAttacks.getValue() == true) {
+    // export failed attacks data to failed-attacks database
+    Logger.log("executing updateFailedAttacks()")
+    updateFailedAttacks()
   }
 }
 
@@ -86,8 +92,11 @@ function addData() {
 
   // find new last row and apply formula to generate primary key for lookup
   var newLastRow = ss.getRangeByName("mainDB").getLastRow()
-  var formulaRange = ssDatabase.getRange("R2C5:R"+newLastRow+"C5")
-  formulaRange.setFormula("=CONCATENATE(A2,B2,C2)")
+  var lookupFormulaRange = ssDatabase.getRange("R2C5:R"+newLastRow+"C5")
+  lookupFormulaRange.setFormula("=CONCATENATE(A2,B2,C2)")
+
+  var dupeFormulaRange = ssDatabase.getRange("R2C6:R"+newLastRow+"C6")
+  dupeFormulaRange.setFormula("=if(COUNTIF($E:$E,$E:$E)=1,FALSE(),TRUE())")
 
   // reset checkbox to false
   buttonAddRows.setValue("false")
@@ -124,15 +133,15 @@ function updateEfficiency() {
 
   // find new last row and apply formula to generate primary key for lookup
   var newLastRow = ss.getRangeByName("mainDB").getLastRow()
-  var formulaRange = ssDatabase.getRange("R2C5:R"+newLastRow+"C5")
-  formulaRange.setFormula("=CONCATENATE(A2,B2,C2)")
+  var lookupFormulaRange = ssDatabase.getRange("R2C5:R"+newLastRow+"C5")
+  lookupFormulaRange.setFormula("=CONCATENATE(A2,B2,C2)")
+
+  var dupeFormulaRange = ssDatabase.getRange("R2C6:R"+newLastRow+"C6")
+  dupeFormulaRange.setFormula("=if(COUNTIF($E:$E,$E:$E)=1,FALSE(),TRUE())")
 
   // reset checkbox to false
   buttonExportEfficiency.setValue("false")
   buttonLockMainDB.setValue("true")
-
-  // export data to failed attacks database
-  updateFailedAttacks()
 }
 
 // https://yagisanatode.com/2019/05/11/google-apps-script-get-the-last-row-of-a-data-range-when-other-columns-have-content-like-hidden-formulas-and-check-boxes/
@@ -154,7 +163,7 @@ function updateFailedAttacks() {
   updateNamedRange(["failedAttacksDB", "Failed-Attacks"])
   var columnToCheck = ssEfficiency.getRange("A:A").getValues()
   var currentFailedAttacksLastRow = getLastRowSpecial(columnToCheck)
-  var currentFailedAttacks = ssEfficiency.getRange(2, 1, currentFailedAttacksLastRow -1, 4).getValues()  // -1 to exclude column header
+  var currentFailedAttacks = ssEfficiency.getRange(2, 1, currentFailedAttacksLastRow -1, 4).getValues()  // -1 to exclude column header from the count
   Logger.log(currentFailedAttacks)
 
   var output = []
@@ -174,4 +183,8 @@ function updateFailedAttacks() {
 
   // sort database
   ss.getRangeByName("failedAttacksDB").sort([{column: 4, ascending: false}, {column: 1}, {column: 3}])
+
+  // reset checkbox to false
+  buttonFailedAttacks.setValue("false")
+  buttonLockMainDB.setValue("true")
 }
