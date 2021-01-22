@@ -182,7 +182,7 @@ function updateFailedAttacks() {
   updateNamedRange(["failedAttacksDB", "Failed-Attacks"])
 
   // sort database
-  ss.getRangeByName("failedAttacksDB").sort([{column: 4, ascending: false}, {column: 1}, {column: 3}])
+  ss.getRangeByName("failedAttacksDB").sort([{column: 5, ascending: false}, {column: 1}])
 
   // reset checkbox to false
   buttonFailedAttacks.setValue("false")
