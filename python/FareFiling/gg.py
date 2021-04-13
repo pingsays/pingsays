@@ -3,9 +3,11 @@ import pandas as pd
 
 # declare variables
 input_file = r'.\gg_fare_filing.xlsx'
+backup_file = r'.\fare_input_backup.xlsx'
 orig = 'NYC'
 currency = 'USD'
 sheet_name = 'copy_this'
+seasons = ('L', 'K1', 'K2', 'H1', 'H2', 'P', 'K', 'H')
 
 # import configuration
 df_input = pd.read_excel(input_file, sheet_name='input', na_filter=False)
@@ -13,15 +15,19 @@ df_cabin_mapping = pd.read_excel(input_file, sheet_name='cabin_mapping')
 df_season_mapping = pd.read_excel(input_file, sheet_name='season_mapping')
 df_fare_combination = pd.read_excel(input_file, sheet_name='fare_combination', na_filter=False)
 
+df_input.set_index('sort', inplace=True)
+df_input.sort_index(inplace=True)
+df_input.reset_index(inplace=True, drop=True)
+
 # join configuration with input file
-df_input = pd.merge(df_input, df_cabin_mapping, on='booking_class')
-df_input = pd.merge(df_input, df_season_mapping, on='season')
+df_input_merged = pd.merge(df_input, df_cabin_mapping, on='booking_class')
+df_input_merged = pd.merge(df_input_merged, df_season_mapping, on='season')
 
 def gen_fares():
     output = []
 
     # loop through each input row
-    for i, row_input in df_input.iterrows():
+    for i, row_input in df_input_merged.iterrows():
         dest = row_input['dest']
         booking_class = row_input['booking_class']
         season = row_input['season']
@@ -58,22 +64,64 @@ def gen_fares():
             output.append(row_output)
     return output
 
+def backup_input(df_input):
+    dict_df = {}
 
-if __name__ == '__main__':
-    output = gen_fares()
+    for season in seasons:
+        df = df_input[df_input['season'] == season]
 
+        if not df.empty:
+            df.reset_index(inplace=True, drop=True)
+            dict_df[season] = df
+
+    with pd.ExcelWriter(backup_file, engine="openpyxl", mode='a') as writer:
+        workbook = writer.book
+        for key, dataframe in dict_df.items():
+            try:
+                workbook.remove(workbook[key])
+            except:
+                print(f'Worksheet [{key}] does not exist')
+            finally:
+                dataframe.to_excel(writer, sheet_name=key, index=False)
+    return dict_df
+
+def create_output(output):
+    dict_df = {}
     columns = [
         'orig', 'dest', 'fare_basis', 'booking_class', 'cabin',
         'ow/rt', 'blank1', 'blank2', 'blank3', 'currency', 'fare'
     ]
-
     df_output = pd.DataFrame(columns=columns, data=output)
+
+    for season in seasons:
+        df = df_input[df_input['season'] == season]
+
+        if not df.empty:
+            df.reset_index(inplace=True, drop=True)
+            dict_df[season] = df
 
     with pd.ExcelWriter(input_file, engine="openpyxl", mode='a') as writer:
         workbook = writer.book
-        try:
-            workbook.remove(workbook[sheet_name])
-        except:
-            print('Worksheet does not exist')
-        finally:
-            df_output.to_excel(writer, sheet_name=sheet_name, index=False)
+        for key, dataframe in dict_df.items():
+            try:
+                workbook.remove(workbook[key])
+            except:
+                print(f'Worksheet [{key}] does not exist')
+            finally:
+                dataframe.to_excel(writer, sheet_name=key, index=False)
+
+
+if __name__ == '__main__':
+    backup_input(df_input)
+    output = gen_fares()
+    create_output(output)
+
+
+    # print(df_input)
+    # print()
+    # print(df_input_merged)
+
+    # x = backup_input(df_input)
+
+    # for k, v in x.items():
+    #     print(v)
