@@ -1,0 +1,29 @@
+.jumbotron {
+  text-align: center;
+  height: 200px;
+  background: #eeeeee;
+  /*display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center*/;
+}
+
+.video {
+  height: 350px;
+  /*padding: 20px;*/
+  /*margin: 20px;*/
+}
+
+.picture {
+  height: 350px;
+}
+
+.section-heading {
+  text-align: center;
+  margin: 20px 10px 10px 10px;
+  padding: 20px 10px 10px 10px;
+}
+
+nav {
+  background: pink;
+}
