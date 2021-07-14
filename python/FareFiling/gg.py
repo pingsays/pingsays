@@ -8,6 +8,7 @@ orig = 'NYC'
 currency = 'USD'
 sheet_name = 'copy_this'
 seasons = ('L', 'K', 'K1', 'K2', 'H', 'H1', 'H2', 'P')
+rt_only_rbd = ['V', 'T', 'H', 'N', 'Q']
 
 # import configuration
 df_input = pd.read_excel(input_file, sheet_name='input', na_filter=False)
@@ -44,7 +45,7 @@ def gen_fares():
             oneway_multiplier = row_fare_combination['oneway_multiplier']
             oneway_mapping = row_fare_combination['oneway_mapping']
 
-            fare_basis = booking_class + season_code + weekend + 'S' + oneway + direct + 'E'
+            fare_basis = booking_class + season_code + weekend + 'S' + oneway + direct + 'US'
             fare = (base_fare + weekend_surcharge) * oneway_multiplier
 
             row_output = {
@@ -62,7 +63,12 @@ def gen_fares():
                 'season': season
             }
 
+            # certain RBDs only have round trip fares
+            if booking_class in rt_only_rbd and oneway == 'O':
+                continue
+
             output.append(row_output)
+
     return output
 
 def create_output(output):
@@ -117,7 +123,6 @@ def backup_input(df_input):
 if __name__ == '__main__':
     backup_input(df_input)
     output = gen_fares()
-    # print(output)
     create_output(output)
 
 
