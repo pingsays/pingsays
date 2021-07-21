@@ -46,7 +46,7 @@ def gen_fares():
             oneway_mapping = row_fare_combination['oneway_mapping']
 
             fare_basis = booking_class + season_code + weekend + oneway + direct + 'US'
-            fare = (base_fare + weekend_surcharge) * oneway_multiplier
+            fare = (base_fare * oneway_multiplier) + weekend_surcharge
 
             row_output = {
                 'orig': orig,
