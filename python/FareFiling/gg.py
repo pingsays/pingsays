@@ -14,7 +14,9 @@ rt_only_rbd = ['V', 'T', 'H', 'N', 'Q']
 df_input = pd.read_excel(input_file, sheet_name='input', na_filter=False)
 df_cabin_mapping = pd.read_excel(input_file, sheet_name='cabin_mapping')
 df_season_mapping = pd.read_excel(input_file, sheet_name='season_mapping')
+df_season_mapping.fillna(value='', inplace=True)
 df_fare_combination = pd.read_excel(input_file, sheet_name='fare_combination', na_filter=False)
+
 
 df_input = df_input.set_index('sort')
 df_input = df_input.sort_index()
