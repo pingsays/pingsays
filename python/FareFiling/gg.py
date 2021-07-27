@@ -7,11 +7,12 @@ backup_file = r'.\fare_input_backup.xlsx'
 orig = 'NYC'
 currency = 'USD'
 sheet_name = 'copy_this'
-seasons = ('L', 'K', 'K1', 'K2', 'H', 'H1', 'H2', 'P')
+seasons = ('L', 'K', 'K1', 'K2', 'H', 'H1', 'H2', 'P', 'O')
 rt_only_rbd = ['V', 'T', 'H', 'N', 'Q']
 
 # import configuration
 df_input = pd.read_excel(input_file, sheet_name='input', na_filter=False)
+df_input.fillna(value='', inplace=True)
 df_cabin_mapping = pd.read_excel(input_file, sheet_name='cabin_mapping')
 df_season_mapping = pd.read_excel(input_file, sheet_name='season_mapping')
 df_season_mapping.fillna(value='', inplace=True)
