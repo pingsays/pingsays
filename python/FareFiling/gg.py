@@ -16,8 +16,10 @@ df_input.fillna(value='', inplace=True)
 df_cabin_mapping = pd.read_excel(input_file, sheet_name='cabin_mapping')
 df_season_mapping = pd.read_excel(input_file, sheet_name='season_mapping')
 df_season_mapping.fillna(value='', inplace=True)
-df_fare_combination = pd.read_excel(input_file, sheet_name='fare_combination', na_filter=False)
 
+df_fare_combination_input = pd.read_excel(input_file, sheet_name='fare_combination', na_filter=False)
+df_fare_combination_standard = df_fare_combination_input[(df_fare_combination_input['weekend'] == 'X') | (df_fare_combination_input['weekend'] == 'W')]
+df_fare_combination_oneseason = df_fare_combination_input[df_fare_combination_input['weekend'] == '']
 
 df_input = df_input.set_index('sort')
 df_input = df_input.sort_index()
@@ -39,12 +41,18 @@ def gen_fares():
         base_fare = row_input['base_fare']
         direct = row_input['direct']
         cabin = row_input['cabin']
+        # fare_filing_type = row_input['fare_filing_type']
+
+        if season == 'O':
+            df_fare_combination = df_fare_combination_oneseason
+        else:
+            df_fare_combination = df_fare_combination_standard
 
         # create different weekend and oneway combinations
         for j, row_fare_combination in df_fare_combination.iterrows():
             weekend = row_fare_combination['weekend']
-            oneway = row_fare_combination['oneway']
             weekend_surcharge = row_fare_combination['weekend_surcharge']
+            oneway = row_fare_combination['oneway']
             oneway_multiplier = row_fare_combination['oneway_multiplier']
             oneway_mapping = row_fare_combination['oneway_mapping']
 
@@ -127,13 +135,3 @@ if __name__ == '__main__':
     backup_input(df_input)
     output = gen_fares()
     create_output(output)
-
-
-    # print(df_input)
-    # print()
-    # print(df_input_merged)
-
-    # x = backup_input(df_input)
-
-    # for k, v in x.items():
-    #     print(v)
