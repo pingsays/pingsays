@@ -46,6 +46,9 @@ class FareFiling:
         self.df_input_merged = pd.merge(df_input, df_cabin_mapping, on='booking_class')
         self.df_input_merged = pd.merge(self.df_input_merged, df_season_mapping, on='season')
 
+    def gen_fare_basis(self, booking_class, season_code, weekend, oneway, direct):
+        return f"{booking_class}{season_code}{weekend}S{oneway}{direct}E"
+
     def gen_fares(self) -> WorkPackage:
         output = []
 
@@ -67,7 +70,7 @@ class FareFiling:
                 oneway_multiplier = row_fare_combination['oneway_multiplier']
                 oneway_mapping = row_fare_combination['oneway_mapping']
 
-                fare_basis = booking_class + season_code + weekend + 'S' + oneway + direct + 'E'
+                fare_basis = self.gen_fare_basis(booking_class, season, weekend, oneway, direct)
                 fare = (base_fare + weekend_surcharge) * oneway_multiplier
 
                 row_output = WorkPackageRecord(
