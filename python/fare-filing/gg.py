@@ -85,7 +85,6 @@ class FareFiling:
                     fare_price=fare,
                     season=season
                 )
-
                 output.append(row_output.dict())
         return WorkPackage(data=output)
 
@@ -96,7 +95,9 @@ class FareFiling:
             'cabin', 'ow/rt', 'blank1', 'blank2', 'blank3',
             'currency', 'fare', 'season'
         ]
-        df_output = pd.DataFrame(columns=columns, data=output.data)
+        print(output.dict()['data'])
+        df_output = pd.DataFrame(data=output.dict()['data'])
+        print(df_output)
 
         for season in self.seasons:
             df = df_output[df_output['season'] == season]
@@ -106,15 +107,16 @@ class FareFiling:
                 df.reset_index(inplace=True, drop=True)
                 dict_df[season] = df
 
-        with pd.ExcelWriter(self.input_file, engine="openpyxl", mode='a') as writer:
+        with pd.ExcelWriter(self.input_file, engine="openpyxl", mode='a', if_sheet_exists='replace') as writer:
             workbook = writer.book
             for key, dataframe in dict_df.items():
-                try:
-                    workbook.remove(workbook[key])
-                except:
-                    print(f'Worksheet [{key}] does not exist')
-                finally:
-                    dataframe.to_excel(writer, sheet_name=key, index=False)
+                # print(key)
+                # try:
+                #     workbook.remove(workbook[key])
+                # except Exception:
+                #     print(f'Worksheet [{key}] does not exist')
+                # finally:
+                dataframe.to_excel(writer, sheet_name=key, index=False)
 
     def backup_input(self, df_input):
         dict_df = {}
@@ -143,6 +145,7 @@ if __name__ == '__main__':
     gg.import_config()
     # backup_input(df_input)
     output = gg.gen_fares()
+    # print(output.data)
     gg.create_output(output)
 
     # x = WorkPackageRecord(
