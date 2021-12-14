@@ -78,5 +78,10 @@ class TestGG(unittest.TestCase):
         self.assertEqual(record_1, check_expect_1)
         self.assertEqual(record_2, check_expect_2)
 
+    def test_joins(self):
+        self.app.import_config()
+
+        print(self.app.df_fare_combination)
+
 if __name__ == '__main__':
     unittest.main()

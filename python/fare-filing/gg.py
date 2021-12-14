@@ -41,6 +41,20 @@ class FareFiling:
         df_input = df_input.sort_index()
         df_input = df_input.reset_index(drop=True)
         self.df_fare_combination = pd.read_excel(self.input_file, sheet_name='fare_combination', na_filter=False)
+        # self.df_fare_combination = self.df_fare_combination.astype({
+        #     'weekend': 'string',
+        #     'weekend_surcharge': 'int32',
+        #     'oneway': 'string',
+        #     'oneway_multiplier': 'float64',
+        #     'oneway_mapping': 'string'
+        # })
+        print(self.df_fare_combination)
+        print(self.df_fare_combination.dtypes)
+        self.df_fare_combination = self.df_fare_combination.astype({
+            'weekend_surcharge': 'int32',
+            'oneway_multiplier': 'float64',
+        })
+        print(self.df_fare_combination.dtypes)
 
         # join configuration with input file
         self.df_input_merged = pd.merge(df_input, df_cabin_mapping, on='booking_class')
@@ -51,6 +65,8 @@ class FareFiling:
 
     def gen_fares(self) -> WorkPackage:
         output = []
+
+        print(self.df_fare_combination.dtypes)
 
         # loop through each input row
         for i, row_input in self.df_input_merged.iterrows():
