@@ -7,9 +7,9 @@ class TestGG(unittest.TestCase):
         self.app = gg.FareFiling()
     
     def test_fare_basis(self):
-        check_expect_1 = 'YLXSOE'
-        check_expect_2 = 'BKWSODE'
-        check_expect_3 = 'XHXSE'  
+        check_expect_1 = 'YLXOUS'
+        check_expect_2 = 'BKWODUS'
+        check_expect_3 = 'XHXUS'
 
         output_1 = self.app.gen_fare_basis('Y', 'L', 'X', 'O', '')
         output_2 = self.app.gen_fare_basis('B', 'K', 'W', 'O', 'D')
