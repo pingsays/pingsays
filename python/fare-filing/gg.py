@@ -34,39 +34,27 @@ class FareFiling:
 
     def import_config(self) -> None:
         # import configuration
-        df_cabin_mapping = pd.read_excel(self.input_file, sheet_name='cabin_mapping')
-        df_season_mapping = pd.read_excel(self.input_file, sheet_name='season_mapping')
-        df_input = pd.read_excel(self.input_file, sheet_name='input', na_filter=False)
-        df_input = df_input.set_index('sort')
-        df_input = df_input.sort_index()
-        df_input = df_input.reset_index(drop=True)
+        self.df_cabin_mapping = pd.read_excel(self.input_file, sheet_name='cabin_mapping')
+        self.df_season_mapping = pd.read_excel(self.input_file, sheet_name='season_mapping')
+        self.df_input = pd.read_excel(self.input_file, sheet_name='input', na_filter=False)
+        self.df_input = self.df_input.set_index('sort')
+        self.df_input = self.df_input.sort_index()
+        self.df_input = self.df_input.reset_index(drop=True)
         self.df_fare_combination = pd.read_excel(self.input_file, sheet_name='fare_combination', na_filter=False)
-        # self.df_fare_combination = self.df_fare_combination.astype({
-        #     'weekend': 'string',
-        #     'weekend_surcharge': 'int32',
-        #     'oneway': 'string',
-        #     'oneway_multiplier': 'float64',
-        #     'oneway_mapping': 'string'
-        # })
-        print(self.df_fare_combination)
-        print(self.df_fare_combination.dtypes)
+
+        # update data type
         self.df_fare_combination = self.df_fare_combination.astype({
             'weekend_surcharge': 'int32',
             'oneway_multiplier': 'float64',
         })
-        print(self.df_fare_combination.dtypes)
 
         # join configuration with input file
-        self.df_input_merged = pd.merge(df_input, df_cabin_mapping, on='booking_class')
-        self.df_input_merged = pd.merge(self.df_input_merged, df_season_mapping, on='season')
-
-    def gen_fare_basis(self, booking_class, season_code, weekend, oneway, direct):
-        return f"{booking_class}{season_code}{weekend}{oneway}{direct}US"
+        self.df_input_merged = pd.merge(self.df_input, self.df_cabin_mapping, on='booking_class')
+        self.df_input_merged = pd.merge(self.df_input_merged, self.df_season_mapping, on='season')
 
     def gen_fares(self) -> WorkPackage:
+        rt_only_rbd = self.get_rt_only_rbd(self.df_cabin_mapping)
         output = []
-
-        print(self.df_fare_combination.dtypes)
 
         # loop through each input row
         for i, row_input in self.df_input_merged.iterrows():
@@ -101,22 +89,35 @@ class FareFiling:
                     fare_price=fare,
                     season=season
                 )
+
+                # certain RBDs only have round trip fares
+                if booking_class in rt_only_rbd and oneway == 'O':
+                    continue
+
                 output.append(row_output.dict())
         return WorkPackage(data=output)
 
-    def create_output(self, output):
+    def get_rt_only_rbd(self, df) -> List:
+        valid_input = ('Y', 'y')
+        rt_only_rbd = df[df['rt_only'].isin(valid_input)]
+        rt_only_rbd_list = rt_only_rbd['booking_class'].values
+        print(rt_only_rbd_list)
+        return rt_only_rbd_list
+
+    def gen_fare_basis(self, booking_class, season_code, weekend, oneway, direct):
+        return f"{booking_class}{season_code}{weekend}{oneway}{direct}US"
+
+    def create_output(self, fares):
         dict_df = {}
-        columns = [
-            'orig', 'dest', 'fare_basis', 'booking_class',
-            'cabin', 'ow/rt', 'blank1', 'blank2', 'blank3',
-            'currency', 'fare', 'season'
-        ]
-        print(output.dict()['data'])
-        df_output = pd.DataFrame(data=output.dict()['data'])
-        print(df_output)
+        df_fares = pd.DataFrame(data=fares.dict()['data'])
+
+        # round fare price then convert to int to remove decimal place
+        # df_fares = df_fares.round({'fare_price': 0})
+        # df_fares['fare_price'] = df_fares['fare_price'].astype('int')
+        print(df_fares)
 
         for season in self.seasons:
-            df = df_output[df_output['season'] == season]
+            df = df_fares[df_fares['season'] == season]
             df = df.drop(columns='season')
 
             if not df.empty:
@@ -124,14 +125,7 @@ class FareFiling:
                 dict_df[season] = df
 
         with pd.ExcelWriter(self.input_file, engine="openpyxl", mode='a', if_sheet_exists='replace') as writer:
-            workbook = writer.book
             for key, dataframe in dict_df.items():
-                # print(key)
-                # try:
-                #     workbook.remove(workbook[key])
-                # except Exception:
-                #     print(f'Worksheet [{key}] does not exist')
-                # finally:
                 dataframe.to_excel(writer, sheet_name=key, index=False)
 
     def backup_input(self, df_input):
@@ -145,13 +139,7 @@ class FareFiling:
                 dict_df[season] = df
 
         with pd.ExcelWriter(self.backup_file, engine="openpyxl", mode='a', if_sheet_exists='replace') as writer:
-            workbook = writer.book
             for key, dataframe in dict_df.items():
-                # try:
-                #     workbook.remove(workbook[key])
-                # except:
-                #     print(f'Worksheet [{key}] does not exist')
-                # finally:
                 dataframe.to_excel(writer, sheet_name=key, index=False)
         return dict_df
 
@@ -159,50 +147,6 @@ class FareFiling:
 if __name__ == '__main__':
     gg = FareFiling()
     gg.import_config()
-    # backup_input(df_input)
-    output = gg.gen_fares()
-    # print(output.data)
-    gg.create_output(output)
-
-    # x = WorkPackageRecord(
-    #     destination='TPE',
-    #     fare_basis='XYLC',
-    #     booking_class='B',
-    #     cabin='Y',
-    #     ow_rt='OW',
-    #     blank1='',
-    #     blank2='',
-    #     blank3='',
-    #     fare_price=1000.0,
-    #     season='L',
-    # )
-
-    # y = WorkPackageRecord(
-    #     destination='SGN',
-    #     fare_basis='CLC',
-    #     booking_class='C',
-    #     cabin='C',
-    #     ow_rt='RT',
-    #     blank1='',
-    #     blank2='',
-    #     blank3='',
-    #     fare_price=2000.0,
-    #     season='L',
-    # )
-
-    # data = [x, y]
-
-    # z = WorkPackage(data=data)
-
-    # # print(x.dict())
-    # # print(f"{y=}")
-    # print(z.data)
-
-    # print(df_input)
-    # print()
-    # print(self.df_input_merged)
-
-    # x = backup_input(df_input)
-
-    # for k, v in x.items():
-    #     print(v)
+    gg.backup_input(gg.df_input)
+    fares = gg.gen_fares()
+    gg.create_output(fares)
