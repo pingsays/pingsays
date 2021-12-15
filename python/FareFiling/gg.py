@@ -7,13 +7,19 @@ backup_file = r'.\fare_input_backup.xlsx'
 orig = 'NYC'
 currency = 'USD'
 sheet_name = 'copy_this'
-seasons = ('L', 'K', 'K1', 'K2', 'H', 'H1', 'H2', 'P')
+seasons = ('L', 'K', 'K1', 'K2', 'H', 'H1', 'H2', 'P', 'O')
+rt_only_rbd = ['V', 'T', 'H', 'N', 'Q']
 
 # import configuration
 df_input = pd.read_excel(input_file, sheet_name='input', na_filter=False)
+df_input.fillna(value='', inplace=True)
 df_cabin_mapping = pd.read_excel(input_file, sheet_name='cabin_mapping')
 df_season_mapping = pd.read_excel(input_file, sheet_name='season_mapping')
-df_fare_combination = pd.read_excel(input_file, sheet_name='fare_combination', na_filter=False)
+df_season_mapping.fillna(value='', inplace=True)
+
+df_fare_combination_input = pd.read_excel(input_file, sheet_name='fare_combination', na_filter=False)
+df_fare_combination_standard = df_fare_combination_input[(df_fare_combination_input['weekend'] == 'X') | (df_fare_combination_input['weekend'] == 'W')]
+df_fare_combination_oneseason = df_fare_combination_input[df_fare_combination_input['weekend'] == '']
 
 df_input = df_input.set_index('sort')
 df_input = df_input.sort_index()
@@ -35,17 +41,23 @@ def gen_fares():
         base_fare = row_input['base_fare']
         direct = row_input['direct']
         cabin = row_input['cabin']
+        # fare_filing_type = row_input['fare_filing_type']
+
+        if season == 'O':
+            df_fare_combination = df_fare_combination_oneseason
+        else:
+            df_fare_combination = df_fare_combination_standard
 
         # create different weekend and oneway combinations
         for j, row_fare_combination in df_fare_combination.iterrows():
             weekend = row_fare_combination['weekend']
-            oneway = row_fare_combination['oneway']
             weekend_surcharge = row_fare_combination['weekend_surcharge']
+            oneway = row_fare_combination['oneway']
             oneway_multiplier = row_fare_combination['oneway_multiplier']
             oneway_mapping = row_fare_combination['oneway_mapping']
 
-            fare_basis = booking_class + season_code + weekend + 'S' + oneway + direct + 'E'
-            fare = (base_fare + weekend_surcharge) * oneway_multiplier
+            fare_basis = booking_class + season_code + weekend + oneway + direct + 'US'
+            fare = (base_fare * oneway_multiplier) + weekend_surcharge
 
             row_output = {
                 'orig': orig,
@@ -62,7 +74,12 @@ def gen_fares():
                 'season': season
             }
 
+            # certain RBDs only have round trip fares
+            if booking_class in rt_only_rbd and oneway == 'O':
+                continue
+
             output.append(row_output)
+
     return output
 
 def create_output(output):
@@ -119,13 +136,3 @@ if __name__ == '__main__':
     output = gen_fares()
     # print(output)
     create_output(output)
-
-
-    # print(df_input)
-    # print()
-    # print(df_input_merged)
-
-    # x = backup_input(df_input)
-
-    # for k, v in x.items():
-    #     print(v)
