@@ -75,7 +75,7 @@ class FareFiling:
                 oneway_mapping = row_fare_combination['oneway_mapping']
 
                 fare_basis = self.gen_fare_basis(booking_class, season_code, weekend, oneway, direct)
-                fare = (base_fare + weekend_surcharge) * oneway_multiplier
+                fare = (base_fare * oneway_multiplier) + weekend_surcharge
 
                 row_output = WorkPackageRecord(
                     destination=dest,
