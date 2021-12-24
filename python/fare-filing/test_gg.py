@@ -1,5 +1,6 @@
 import unittest
 import gg
+from pydantic import BaseModel
 
 class TestGG(unittest.TestCase):
 
@@ -109,6 +110,43 @@ class TestGG(unittest.TestCase):
             ), check_expect_2['result']
         )
         
+    def test_ping(self):
+        import pandas as pd
+        from models.models import Input, WorkPackage, WorkPackageRecord, FareCombination, CabinMapping, SeasonMapping
+
+        input_file = r'./gg_fare_filing.xlsx'
+
+        df_fare_combination = pd.read_excel(input_file, sheet_name='fare_combination', na_filter=False)
+        df_cabin_mapping = pd.read_excel(input_file, sheet_name='cabin_mapping')
+        df_season_mapping = pd.read_excel(input_file, sheet_name='season_mapping')
+        df_input = pd.read_excel(input_file, sheet_name='input', na_filter=False)
+        df_input = df_input.set_index('sort')
+        df_input = df_input.sort_index()
+        df_input = df_input.reset_index(drop=True)
+
+        df_fare_combination = df_fare_combination.astype({
+            'weekend_surcharge': 'int32',
+            'oneway_multiplier': 'float64',
+        })
+
+        df_input_merged = pd.merge(df_input, df_cabin_mapping, on='booking_class')
+        df_input_merged = pd.merge(df_input_merged, df_season_mapping, on='season')
+
+        print(df_input_merged)
+
+        a = Input(**df_input_merged.to_dict())
+        print(a.dict())
+
+        # x = FareCombination(**df_fare_combination.to_dict())
+        # y = CabinMapping(**df_cabin_mapping.to_dict())
+        # z = SeasonMapping(**df_season_mapping.to_dict())
+        # print()
+        # print(x)
+        # print()
+        # print(y)
+        # print()
+        # print(z)
+
 
 if __name__ == '__main__':
     unittest.main()
