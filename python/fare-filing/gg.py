@@ -54,6 +54,7 @@ class FareFiling:
 
     def gen_fares(self) -> WorkPackage:
         rt_only_rbd = self.get_rt_only_rbd(self.df_cabin_mapping)
+        weekend_only_rbd = self.get_weekend_only_rbd(self.df_cabin_mapping)
         output = []
 
         # loop through each input row
@@ -74,6 +75,17 @@ class FareFiling:
                 oneway_multiplier = row_fare_combination['oneway_multiplier']
                 oneway_mapping = row_fare_combination['oneway_mapping']
 
+                # skip if RBD does not have round trip fares
+                if booking_class in rt_only_rbd and oneway == 'O':
+                    continue
+
+                # skip if RBD does not have weekend or weekday
+                if booking_class in weekend_only_rbd:
+                    if weekend == 'W':
+                        continue
+                    elif weekend == 'X':
+                        weekend = ''
+
                 fare_basis = self.gen_fare_basis(booking_class, season_code, weekend, oneway, direct)
                 fare = self.calc_fare(base_fare, oneway_multiplier, weekend_surcharge)
 
@@ -90,10 +102,6 @@ class FareFiling:
                     season=season
                 )
 
-                # certain RBDs only have round trip fares
-                if booking_class in rt_only_rbd and oneway == 'O':
-                    continue
-
                 output.append(row_output.dict())
         return WorkPackage(data=output)
 
@@ -106,6 +114,13 @@ class FareFiling:
         rt_only_rbd_list = rt_only_rbd['booking_class'].values
         print(rt_only_rbd_list)
         return rt_only_rbd_list
+
+    def get_weekend_only_rbd(self, df) -> List:
+        valid_input = ('Y', 'y')
+        weekend_only_rbd = df[df['weekend_only'].isin(valid_input)]
+        weekend_only_rbd_list = weekend_only_rbd['booking_class'].values
+        print(weekend_only_rbd_list)
+        return weekend_only_rbd_list
 
     def gen_fare_basis(self, booking_class, season_code, weekend, oneway, direct):
         return f"{booking_class}{season_code}{weekend}{oneway}{direct}US"
