@@ -78,10 +78,37 @@ class TestGG(unittest.TestCase):
         self.assertEqual(record_1, check_expect_1)
         self.assertEqual(record_2, check_expect_2)
 
-    def test_joins(self):
-        self.app.import_config()
+    def test_calc_fare(self):
+        check_expect_1 = {
+            'base_fare': 1000,
+            'ow_multiplier': .65,
+            'weekend_surcharge': 40,
+            'result': 690
+        }
 
-        print(self.app.df_fare_combination)
+        check_expect_2 = {
+            'base_fare': 2000,
+            'ow_multiplier': .6,
+            'weekend_surcharge': 80,
+            'result': 1280
+        }
+
+        self.assertEqual(
+            self.app.calc_fare(
+                check_expect_1['base_fare'], 
+                check_expect_1['ow_multiplier'], 
+                check_expect_1['weekend_surcharge']
+            ), check_expect_1['result']
+        )
+
+        self.assertEqual(
+            self.app.calc_fare(
+                check_expect_2['base_fare'], 
+                check_expect_2['ow_multiplier'], 
+                check_expect_2['weekend_surcharge']
+            ), check_expect_2['result']
+        )
+        
 
 if __name__ == '__main__':
     unittest.main()
