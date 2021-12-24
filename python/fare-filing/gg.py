@@ -75,7 +75,7 @@ class FareFiling:
                 oneway_mapping = row_fare_combination['oneway_mapping']
 
                 fare_basis = self.gen_fare_basis(booking_class, season_code, weekend, oneway, direct)
-                fare = (base_fare * oneway_multiplier) + weekend_surcharge
+                fare = self.calc_fare(base_fare, oneway_multiplier, weekend_surcharge)
 
                 row_output = WorkPackageRecord(
                     destination=dest,
@@ -96,6 +96,9 @@ class FareFiling:
 
                 output.append(row_output.dict())
         return WorkPackage(data=output)
+
+    def calc_fare(self, base_fare, ow_multiplier, weekend_surcharge):
+        return (base_fare * ow_multiplier) + weekend_surcharge
 
     def get_rt_only_rbd(self, df) -> List:
         valid_input = ('Y', 'y')
