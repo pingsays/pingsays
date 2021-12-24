@@ -1,5 +1,6 @@
 import unittest
 import gg
+from pydantic import BaseModel
 
 class TestGG(unittest.TestCase):
 
@@ -78,10 +79,74 @@ class TestGG(unittest.TestCase):
         self.assertEqual(record_1, check_expect_1)
         self.assertEqual(record_2, check_expect_2)
 
-    def test_joins(self):
-        self.app.import_config()
+    def test_calc_fare(self):
+        check_expect_1 = {
+            'base_fare': 1000,
+            'ow_multiplier': .65,
+            'weekend_surcharge': 40,
+            'result': 690
+        }
 
-        print(self.app.df_fare_combination)
+        check_expect_2 = {
+            'base_fare': 2000,
+            'ow_multiplier': .6,
+            'weekend_surcharge': 80,
+            'result': 1280
+        }
+
+        self.assertEqual(
+            self.app.calc_fare(
+                check_expect_1['base_fare'], 
+                check_expect_1['ow_multiplier'], 
+                check_expect_1['weekend_surcharge']
+            ), check_expect_1['result']
+        )
+
+        self.assertEqual(
+            self.app.calc_fare(
+                check_expect_2['base_fare'], 
+                check_expect_2['ow_multiplier'], 
+                check_expect_2['weekend_surcharge']
+            ), check_expect_2['result']
+        )
+        
+    def test_ping(self):
+        import pandas as pd
+        from models.models import Input, WorkPackage, WorkPackageRecord, FareCombination, CabinMapping, SeasonMapping
+
+        input_file = r'./gg_fare_filing.xlsx'
+
+        df_fare_combination = pd.read_excel(input_file, sheet_name='fare_combination', na_filter=False)
+        df_cabin_mapping = pd.read_excel(input_file, sheet_name='cabin_mapping')
+        df_season_mapping = pd.read_excel(input_file, sheet_name='season_mapping')
+        df_input = pd.read_excel(input_file, sheet_name='input', na_filter=False)
+        df_input = df_input.set_index('sort')
+        df_input = df_input.sort_index()
+        df_input = df_input.reset_index(drop=True)
+
+        df_fare_combination = df_fare_combination.astype({
+            'weekend_surcharge': 'int32',
+            'oneway_multiplier': 'float64',
+        })
+
+        df_input_merged = pd.merge(df_input, df_cabin_mapping, on='booking_class')
+        df_input_merged = pd.merge(df_input_merged, df_season_mapping, on='season')
+
+        print(df_input_merged)
+
+        a = Input(**df_input_merged.to_dict())
+        print(a.dict())
+
+        # x = FareCombination(**df_fare_combination.to_dict())
+        # y = CabinMapping(**df_cabin_mapping.to_dict())
+        # z = SeasonMapping(**df_season_mapping.to_dict())
+        # print()
+        # print(x)
+        # print()
+        # print(y)
+        # print()
+        # print(z)
+
 
 if __name__ == '__main__':
     unittest.main()
