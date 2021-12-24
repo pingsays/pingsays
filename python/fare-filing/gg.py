@@ -1,29 +1,7 @@
 # import modules
 import pandas as pd
-from pydantic import BaseModel
+from models.models import WorkPackage, WorkPackageRecord
 from typing import List
-
-
-class WorkPackageRecord(BaseModel):
-    """Class for keeping track of all information needed for work package"""
-    # declare constants
-    origin: str = 'NYC'
-    destination: str
-    fare_basis: str
-    booking_class: str
-    cabin: str
-    ow_rt: str
-    blank1: str
-    blank2: str
-    blank3: str
-    currency: str = 'USD'
-    fare_price: float
-    season: str
-
-
-class WorkPackage(BaseModel):
-    data: List[WorkPackageRecord]
-
 
 class FareFiling:
     def __init__(self) -> None:
