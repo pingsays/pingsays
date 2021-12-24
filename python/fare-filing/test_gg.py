@@ -1,11 +1,11 @@
 import unittest
-import gg
+from modules.fare_filing import FareFiling
 from pydantic import BaseModel
 
 class TestGG(unittest.TestCase):
 
     def setUp(self):
-        self.app = gg.FareFiling()
+        self.app = FareFiling()
     
     def test_fare_basis(self):
         check_expect_1 = 'YLXOUS'
@@ -19,65 +19,6 @@ class TestGG(unittest.TestCase):
         self.assertEqual(output_1, check_expect_1)
         self.assertEqual(output_2, check_expect_2)
         self.assertEqual(output_3, check_expect_3)
-
-    def test_work_package_record(self):
-        check_expect_1 = {
-            'origin': 'NYC', 
-            'destination': 'TPE',
-            'fare_basis': 'YLXSOE',
-            'booking_class': 'Y',
-            'cabin': 'Economy',
-            'ow_rt': 'OO',
-            'blank1': '',
-            'blank2': '',
-            'blank3': '',
-            'currency': 'USD',
-            'fare_price': 1000.0,
-            'season': 'L'
-        }
-        check_expect_2 = {
-            'origin': 'NYC', 
-            'destination': 'SGN',
-            'fare_basis': 'XHXSE',
-            'booking_class': 'X',
-            'cabin': 'Economy',
-            'ow_rt': 'RT',
-            'blank1': '',
-            'blank2': '',
-            'blank3': '',
-            'currency': 'USD',
-            'fare_price': 1000.0,
-            'season': 'L'
-        }
-
-        record_1 = gg.WorkPackageRecord(
-            destination='TPE',
-            fare_basis="YLXSOE",
-            booking_class='Y',
-            cabin='Economy',
-            ow_rt='OO',
-            blank1='',
-            blank2='',
-            blank3='',
-            fare_price=1000.0,
-            season='L'
-        )
-
-        record_2 = gg.WorkPackageRecord(
-            destination='SGN',
-            fare_basis="XHXSE",
-            booking_class='X',
-            cabin='Economy',
-            ow_rt='RT',
-            blank1='',
-            blank2='',
-            blank3='',
-            fare_price=1000.0,
-            season='L'
-        )
-
-        self.assertEqual(record_1, check_expect_1)
-        self.assertEqual(record_2, check_expect_2)
 
     def test_calc_fare(self):
         check_expect_1 = {
@@ -109,6 +50,67 @@ class TestGG(unittest.TestCase):
                 check_expect_2['weekend_surcharge']
             ), check_expect_2['result']
         )
+
+    def test_work_package_record(self):
+        from models.models import WorkPackageRecord
+
+        check_expect_1 = {
+            'origin': 'NYC', 
+            'destination': 'TPE',
+            'fare_basis': 'YLXSOE',
+            'booking_class': 'Y',
+            'cabin': 'Economy',
+            'ow_rt': 'OO',
+            'blank1': '',
+            'blank2': '',
+            'blank3': '',
+            'currency': 'USD',
+            'fare_price': 1000.0,
+            'season': 'L'
+        }
+        check_expect_2 = {
+            'origin': 'NYC', 
+            'destination': 'SGN',
+            'fare_basis': 'XHXSE',
+            'booking_class': 'X',
+            'cabin': 'Economy',
+            'ow_rt': 'RT',
+            'blank1': '',
+            'blank2': '',
+            'blank3': '',
+            'currency': 'USD',
+            'fare_price': 1000.0,
+            'season': 'L'
+        }
+
+        record_1 = WorkPackageRecord(
+            destination='TPE',
+            fare_basis="YLXSOE",
+            booking_class='Y',
+            cabin='Economy',
+            ow_rt='OO',
+            blank1='',
+            blank2='',
+            blank3='',
+            fare_price=1000.0,
+            season='L'
+        )
+
+        record_2 = WorkPackageRecord(
+            destination='SGN',
+            fare_basis="XHXSE",
+            booking_class='X',
+            cabin='Economy',
+            ow_rt='RT',
+            blank1='',
+            blank2='',
+            blank3='',
+            fare_price=1000.0,
+            season='L'
+        )
+
+        self.assertEqual(record_1, check_expect_1)
+        self.assertEqual(record_2, check_expect_2)
         
     def test_ping(self):
         import pandas as pd
@@ -146,6 +148,29 @@ class TestGG(unittest.TestCase):
         # print(y)
         # print()
         # print(z)
+
+    def test_logging(self):
+        import logging
+
+        # create logger
+        logger = logging.getLogger(__name__)
+        logger.setLevel('DEBUG')
+
+        # create console handler and set level to debug
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+
+        # create formatter
+        formatter  = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+        # add formatter to ch
+        ch.setFormatter(formatter)
+
+        # add ch to logger
+        logger.addHandler(ch)
+        
+        logger.info('Testing info level message')
+        logger.debug('Testing debug level message')
 
 
 if __name__ == '__main__':
