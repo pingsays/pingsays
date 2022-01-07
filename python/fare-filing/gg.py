@@ -11,7 +11,8 @@ def setup_logger():
     ch.setLevel(logging.DEBUG)
 
     # create formatter
-    formatter  = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    format = '{asctime} - {name} - {levelname} - {message}'
+    formatter  = logging.Formatter(fmt=format, style='{')
 
     # add formatter to ch
     ch.setFormatter(formatter)
@@ -25,7 +26,6 @@ if __name__ == '__main__':
     logger = setup_logger()
 
     logger.info('Initializing App..')
-    # gg = FareFiling(logger)
     gg = FareFiling()
 
     logger.info('Importing app config..')

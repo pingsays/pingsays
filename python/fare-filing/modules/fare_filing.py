@@ -7,7 +7,7 @@ import logging
 class FareFiling:
     def __init__(self) -> None:
         # initialize logger
-        self.setup_logger()
+        self.logger = self.setup_logger()
         
         # declare variables
         self.input_file = r'./gg_fare_filing.xlsx'
@@ -15,22 +15,7 @@ class FareFiling:
         self.seasons = ('L', 'K', 'K1', 'K2', 'H', 'H1', 'H2', 'P')
 
     def setup_logger(self):
-        # self.logger = logger
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel('DEBUG')
-
-        # create console handler and set level to debug
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
-
-        # create formatter
-        formatter  = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-        # add formatter to ch
-        ch.setFormatter(formatter)
-
-        # add ch to logger
-        self.logger.addHandler(ch)
+        return logging.getLogger(f"__main__.{__name__}")
 
     def import_config(self) -> None:
         # import configuration
