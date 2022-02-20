@@ -1,0 +1,22 @@
+[tool.pdm]
+includes = []
+[tool.pdm.dev-dependencies]
+dev = []
+[build-system]
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"
+
+[project]
+name = "fare-filing"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Ping Lin", email = "pingli88@gmail.com"},
+    {name = "Ping Lin",email = "pingli88@gmail.com"}
+]
+dependencies = ["pandas<2.0.0,>=1.4.1", "pydantic<2.0.0,>=1.9.0", "openpyxl<4.0.0,>=3.0.9"]
+requires-python = ">=3.9,<4.0"
+license = {text = "MIT"}
+
+[project.urls]
+Homepage = ""
