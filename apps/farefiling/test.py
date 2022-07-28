@@ -20,11 +20,12 @@ class TestFareFiling(unittest.TestCase):
         keys = tuple(dfs.keys())
 
         for sheet in required_sheets:
-            with self.subTest(sheet):
+            msg = f"sheet '{sheet}' is missing from Excel workbook"
+            with self.subTest(msg):
                 self.assertIn(sheet, keys)
 
-    def test_hello(self):
-        self.assertEqual(hello_world(), 'hello_world')
+    def test_generate_fare_combinations(self):
+        pass
 
 
 if __name__ == '__main__':
