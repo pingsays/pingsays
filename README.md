@@ -35,4 +35,11 @@ classDiagram
         ticker~str~
         composite_exchange~str~
     }
+
+    class Scd {
+        filepath~path~
+        parse_bbg_csv()
+        post_to_adv_queue()
+        trigger_bjg()
+    }
 ```
