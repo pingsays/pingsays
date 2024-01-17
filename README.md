@@ -1,16 +1,38 @@
-### Hi there 👋
+```mermaid
+classDiagram
+    Hapi <-- Request
+    Hapi <-- FieldList
+    Hapi <-- Universe
+    Universe <-- Security
 
-<!--
-**pingsays/pingsays** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+    class Hapi {
+        Request
+        create_request() id~str~
+        submit_request(id)
+        download_file(id)
+    }
 
-Here are some ideas to get you started:
+    class FieldList {
+        ID_BB_GLOBAL~str~
+        PRIM_EXCH~str~
+        SEC_TYPE~str~
+        create_fieldlist() id~str~
+        patch_fieldlist()
+    }
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+    class Universe {
+        Securities~List[Security]~
+        create_universe() id~str~
+        patch_universe()
+    }
+
+    class Request {
+        adhoc|scheduled
+        create_schedule()
+    }
+
+    class Security {
+        ticker~str~
+        composite_exchange~str~
+    }
+```
